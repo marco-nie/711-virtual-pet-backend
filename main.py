@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import sqlite3
 import os
+from behavior import get_user_profile
 
 app = FastAPI()
 
@@ -65,3 +66,7 @@ def get_events():
         {"user_id": r[0], "event_type": r[1], "item": r[2], "timestamp": r[3]}
         for r in rows
     ]
+
+@app.get("/profile/{user_id}")
+def get_profile(user_id: str):
+    return get_user_profile(user_id)
