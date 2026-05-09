@@ -76,3 +76,8 @@ def predict(user_id: str):
     from behavior import generate_prediction_message
     message = generate_prediction_message(user_id)
     return {"prediction": message}
+
+@app.get("/adventure/{user_id}")
+def get_adventure(user_id: str):
+    from behavior import generate_adventure
+    return generate_adventure(user_id)

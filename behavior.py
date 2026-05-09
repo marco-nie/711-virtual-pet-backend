@@ -135,3 +135,53 @@ def get_user_profile(user_id: str):
         "pet_message": message,
         "prediction_message": prediction_message
     }
+
+import random
+
+ADVENTURE_TEMPLATES = {
+    "coffee": [
+        "I sneaked into a 7-Eleven and found something amazing for you!",
+        "I went on a morning adventure and discovered a secret deal!",
+        "I explored the neighborhood and found your favorite waiting for you!",
+    ],
+    "onigiri": [
+        "I went on a food adventure and found the freshest onigiri in town!",
+        "I explored every aisle and found something delicious just for you!",
+        "I went on an adventure and your favorite snack is calling your name!",
+    ],
+    "sandwich": [
+        "I went on a lunch adventure and found the perfect deal!",
+        "I explored the 7-Eleven and found something hearty for you!",
+        "I went on an adventure and discovered your sandwich is waiting!",
+    ],
+    "juice": [
+        "I went on a refreshing adventure and found the perfect drink!",
+        "I explored and found something to keep you energized!",
+        "I went on an adventure and your favorite juice is on special!",
+    ],
+}
+
+DISCOUNT_CODES = {
+    "coffee": "SIMBA-COFFEE-2026",
+    "onigiri": "SIMBA-ONIGIRI-2026",
+    "sandwich": "SIMBA-SANDWICH-2026",
+    "juice": "SIMBA-JUICE-2026",
+}
+
+def generate_adventure(user_id: str):
+    prediction = predict_next_item(user_id)
+
+    if not prediction:
+        prediction = "coffee"
+
+    templates = ADVENTURE_TEMPLATES.get(prediction, ADVENTURE_TEMPLATES["coffee"])
+    story = random.choice(templates)
+    code = DISCOUNT_CODES.get(prediction, "SIMBA711-2026")
+
+    return {
+        "item": prediction,
+        "story": story,
+        "call_to_action": f"Let's go grab some {prediction} at a 7-Eleven near you to discuss my adventure!",
+        "discount_code": code,
+        "discount_text": f"Show this code at checkout for 10% off your {prediction}!"
+    }
