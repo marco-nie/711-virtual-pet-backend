@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
+import sqlite3
+import os
 
 app = FastAPI()
 
@@ -12,7 +14,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-EVENTS = []
+DB_PATH = "events.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            event_type TEXT,
+            item TEXT,
+            timestamp TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
 
 
 class Event(BaseModel):
@@ -28,15 +46,22 @@ def home():
 
 @app.post("/event")
 def collect_event(event: Event):
-    EVENTS.append({
-        "user_id": event.user_id,
-        "event_type": event.event_type,
-        "item": event.item,
-        "timestamp": str(datetime.now())
-    })
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        "INSERT INTO events (user_id, event_type, item, timestamp) VALUES (?, ?, ?, ?)",
+        (event.user_id, event.event_type, event.item, str(datetime.now()))
+    )
+    conn.commit()
+    conn.close()
     return {"status": "success"}
 
 
 @app.get("/events")
 def get_events():
-    return EVENTS
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute("SELECT user_id, event_type, item, timestamp FROM events").fetchall()
+    conn.close()
+    return [
+        {"user_id": r[0], "event_type": r[1], "item": r[2], "timestamp": r[3]}
+        for r in rows
+    ]
