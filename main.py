@@ -1,8 +1,16 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://marco-nie.github.io"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 EVENTS = []
 
@@ -20,14 +28,12 @@ def home():
 
 @app.post("/event")
 def collect_event(event: Event):
-
     EVENTS.append({
         "user_id": event.user_id,
         "event_type": event.event_type,
         "item": event.item,
         "timestamp": str(datetime.now())
     })
-
     return {"status": "success"}
 
 
