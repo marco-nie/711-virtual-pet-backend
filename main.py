@@ -70,3 +70,9 @@ def get_events():
 @app.get("/profile/{user_id}")
 def get_profile(user_id: str):
     return get_user_profile(user_id)
+
+@app.get("/predict/{user_id}")
+def predict(user_id: str):
+    from behavior import generate_prediction_message
+    message = generate_prediction_message(user_id)
+    return {"prediction": message}

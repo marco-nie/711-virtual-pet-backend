@@ -45,18 +45,71 @@ def get_time_of_day(events):
         return "evening"
 
 
+def get_current_time_of_day():
+    hour = datetime.now().hour
+    if hour < 12:
+        return "morning"
+    elif hour < 17:
+        return "afternoon"
+    else:
+        return "evening"
+
+
+def predict_next_item(user_id: str):
+    events = get_user_events(user_id)
+    if not events:
+        return None
+
+    current_time = get_current_time_of_day()
+
+    time_items = []
+    for item, timestamp in events:
+        try:
+            hour = datetime.fromisoformat(timestamp).hour
+            if current_time == "morning" and hour < 12:
+                time_items.append(item)
+            elif current_time == "afternoon" and 12 <= hour < 17:
+                time_items.append(item)
+            elif current_time == "evening" and hour >= 17:
+                time_items.append(item)
+        except:
+            continue
+
+    if time_items:
+        return Counter(time_items).most_common(1)[0][0]
+
+    return get_favorite_item(events)
+
+
+def generate_prediction_message(user_id: str):
+    prediction = predict_next_item(user_id)
+    current_time = get_current_time_of_day()
+
+    if not prediction:
+        return None
+
+    messages = {
+        "coffee": f"Ready for your {current_time} coffee? ☕ I've been waiting!",
+        "onigiri": f"Feeling hungry? Your usual onigiri sounds perfect right now! 🍙",
+        "sandwich": f"How about your favorite sandwich? 🥪 You deserve it!",
+        "juice": f"Time for your {current_time} juice? 🧃 Stay refreshed!",
+    }
+
+    return messages.get(prediction, f"How about some {prediction}? I think you'd love it right now!")
+
+
 def generate_pet_message(user_id: str):
     events = get_user_events(user_id)
 
     if not events:
-        return f"Hi! I'm so happy to meet you! Go buy something from the store!"
+        return "Hi! I'm so happy to meet you! Go buy something from the store!"
 
     favorite = get_favorite_item(events)
     time_of_day = get_time_of_day(events)
     total = len(events)
 
     if total == 1:
-        return f"Thanks for your first purchase! Keep it up!"
+        return "Thanks for your first purchase! Keep it up!"
 
     if favorite and time_of_day:
         return f"I know you love your {favorite} in the {time_of_day}! You've treated me {total} times!"
@@ -72,11 +125,13 @@ def get_user_profile(user_id: str):
     favorite = get_favorite_item(events)
     time_of_day = get_time_of_day(events)
     message = generate_pet_message(user_id)
+    prediction_message = generate_prediction_message(user_id)
 
     return {
         "user_id": user_id,
         "total_purchases": len(events),
         "favorite_item": favorite,
         "shopping_time": time_of_day,
-        "pet_message": message
+        "pet_message": message,
+        "prediction_message": prediction_message
     }
